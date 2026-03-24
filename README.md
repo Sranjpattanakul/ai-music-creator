@@ -13,7 +13,7 @@ This project implements the domain layer for an AI Music Creator Platform using 
 
 1. Clone the repository
 ```bash
-git clone <https://github.com/Sranjpattanakul/ai-music-creator.git>
+git clone https://github.com/Sranjpattanakul/ai-music-creator.git
 cd ai-music-creator
 ```
 

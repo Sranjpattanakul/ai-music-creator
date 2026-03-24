@@ -8,3 +8,8 @@ __pycache__/
 .pytest_cache/
 db.sqlite3__pycache__/
 venv/
+venv/
+__pycache__/
+.pytest_cache/
+.idea/
+.vscode/

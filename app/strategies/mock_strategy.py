@@ -1,5 +1,7 @@
 import uuid
-from .base import SongGeneratorStrategy, GenerationRequest, GenerationResult
+from .base import SongGeneratorStrategy
+from .generation_request import GenerationRequest
+from .generation_result import GenerationResult
 
 
 class MockSongGeneratorStrategy(SongGeneratorStrategy):

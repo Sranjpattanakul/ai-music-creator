@@ -73,116 +73,60 @@ classDiagram
     namespace Templates_T {
         class home_html {
             <<template>>
-            +generation form
-            +strategy selector
-            +status polling
         }
         class library_html {
             <<template>>
-            +song list
-            +draft list
-            +favorites
         }
         class browse_html {
             <<template>>
-            +public songs
-            +shared song access
         }
         class login_html {
             <<template>>
-            +Google OAuth button
-            +demo login button
         }
     }
 
     namespace Views_V {
         class GenerationController {
             <<view>>
-            +generate_song(request) JsonResponse
-            +generation_status(request, task_id) JsonResponse
+            +generate_song(request)
+            +generation_status(request, task_id)
         }
         class SongManagerController {
             <<view>>
-            +list_songs(request, user_id) JsonResponse
-            +toggle_favorite(request, user_id, song_id) JsonResponse
-            +delete_song(request, user_id, song_id) JsonResponse
-            +list_drafts(request, user_id) JsonResponse
-            +save_draft(request, user_id) JsonResponse
-            +delete_draft(request, user_id, draft_id) JsonResponse
+            +list_songs(request, user_id)
+            +toggle_favorite(request, user_id, song_id)
+            +delete_song(request, user_id, song_id)
+            +list_drafts(request, user_id)
+            +save_draft(request, user_id)
+            +delete_draft(request, user_id, draft_id)
         }
         class BrowseController {
             <<view>>
-            +browse_library(request, user_id) JsonResponse
-            +browse_favorites(request, user_id) JsonResponse
-            +share_song(request, user_id, song_id) JsonResponse
-            +access_shared(request, token) JsonResponse
+            +browse_library(request, user_id)
+            +share_song(request, user_id, song_id)
         }
         class AuthController {
             <<view>>
-            +google_login(request) redirect
-            +google_callback(request) redirect
-            +demo_login(request) redirect
-            +logout(request) redirect
-        }
-        class HomeController {
-            <<view>>
-            +index(request) render
-        }
-    }
-
-    namespace Services {
-        class GenerationService {
-            -generator SongGeneratorStrategy
-            +start_generation(prompt, song) GenerationJob
-            +check_status(task_id) dict
-        }
-        class SongManagerService {
-            +list_songs(user_id) List
-            +toggle_favorite(song_id, user_id) Song
-            +delete_song(song_id, user_id) void
-            +list_drafts(user_id) List
-            +save_draft(user_id, title, mood, occasion) Draft
-            +delete_draft(draft_id, user_id) void
+            +google_login(request)
+            +demo_login(request)
+            +logout(request)
         }
     }
 
     namespace Strategies {
         class SongGeneratorStrategy {
             <<abstract>>
-            +generate(request) GenerationResult*
-            +get_status(task_id) GenerationResult*
+            +generate(request)*
+            +get_status(task_id)*
         }
         class MockSongGeneratorStrategy {
-            +generate(request) GenerationResult
-            +get_status(task_id) GenerationResult
+            +generate(request)
+            +get_status(task_id)
         }
         class SunoSongGeneratorStrategy {
             -api_key str
-            -base_url str
-            +generate(request) GenerationResult
-            +get_status(task_id) GenerationResult
-        }
-        class get_generator {
-            <<factory>>
-            +get_generator(strategy) SongGeneratorStrategy
-        }
-        class GenerationRequest {
-            <<dataclass>>
-            +title str
-            +description str
-            +mood str
-            +occasion str
-            +singer_tone str
-            +requested_duration str
-        }
-        class GenerationResult {
-            <<dataclass>>
-            +task_id str
-            +status str
-            +audio_url str
-            +image_url str
-            +title str
-            +duration str
+            +generate(request)
+            +get_status(task_id)
         }
     }
 
@@ -191,72 +135,46 @@ classDiagram
             +email String
             +display_name String
             +google_id String
-            +created_at DateTime
-            +last_login_at DateTime
         }
         class Library {
             +user User
-            +created_at DateTime
         }
         class Song {
-            +library Library
             +title String
             +audio_file_url String
-            +image_url String
-            +duration String
             +status GenerationStatus
             +is_favorite Boolean
             +play_count Integer
-            +created_at DateTime
         }
         class Prompt {
             +title String
-            +description String
-            +occasion Occasion
             +mood Mood
+            +occasion Occasion
             +singer_tone SingerTone
             +requested_duration String
-            +created_at DateTime
         }
         class Draft {
             +prompt Prompt
             +library Library
-            +saved_at DateTime
-            +last_modified_at DateTime
         }
         class GenerationJob {
-            +song Song
-            +prompt Prompt
             +task_id String
             +status GenerationStatus
-            +created_at DateTime
-            +updated_at DateTime
         }
         class ShareLink {
-            +song Song
             +unique_token String
             +expires_at DateTime
-            +access_count Integer
-            +created_at DateTime
         }
         class PlaybackSession {
-            +user User
-            +current_song Song
-            +current_position String
             +is_playing Boolean
             +volume Float
-            +loop_start_time String
-            +loop_end_time String
-            +is_looping Boolean
+            +current_position String
         }
         class EqualizerPreset {
-            +user User
-            +playback_session PlaybackSession
             +name String
             +bass_level Float
             +mid_level Float
             +treble_level Float
-            +last_used_at DateTime
         }
         class GenerationStatus {
             <<enumeration>>
@@ -297,25 +215,11 @@ classDiagram
     library_html ..> SongManagerController : calls
     browse_html ..> BrowseController : calls
     login_html ..> AuthController : calls
-    HomeController ..> home_html : renders
-    AuthController ..> login_html : renders
 
-    GenerationController --> GenerationService : uses
-    SongManagerController --> SongManagerService : uses
-    BrowseController --> SongManagerService : uses
-
-    GenerationService --> SongGeneratorStrategy : uses
-    GenerationService ..> GenerationRequest : creates
-    GenerationService ..> GenerationResult : receives
-    get_generator ..> SongGeneratorStrategy : returns
+    GenerationController --> SongGeneratorStrategy : uses
 
     MockSongGeneratorStrategy --|> SongGeneratorStrategy
     SunoSongGeneratorStrategy --|> SongGeneratorStrategy
-
-    GenerationService --> GenerationJob : creates
-    GenerationService --> Song : updates
-    SongManagerService --> Song : manages
-    SongManagerService --> Draft : manages
 
     User "1" --> "1" Library : owns
     User "1" --> "0..1" PlaybackSession : has
@@ -325,13 +229,11 @@ classDiagram
     Draft "1" *-- "1" Prompt : contains
     Song "1" --> "0..*" ShareLink : shared via
     GenerationJob "1" --> "1" Song : created by
-    GenerationJob --> GenerationStatus
     Song --> GenerationStatus
     Prompt --> Mood
     Prompt --> Occasion
     Prompt --> SingerTone
     PlaybackSession "0..1" --> "1" Song : plays
-    EqualizerPreset "0..*" --> "0..1" PlaybackSession : applies to
 ```
 
 ---

@@ -1,5 +1,5 @@
 from app.models import Song, Library, Prompt, Draft
-from app.models.song import GenerationStatus
+from app.models.generation_status import GenerationStatus
 
 
 class SongManagerService:

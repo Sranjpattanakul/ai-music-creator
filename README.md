@@ -66,6 +66,350 @@ The system supports the following core flow:
 
 ---
 
+## Class Diagram (MVT Architecture)
+
+```mermaid
+classDiagram
+    namespace Templates_T {
+        class home_html {
+            <<template>>
+            +generation form
+            +strategy selector
+            +status polling
+        }
+        class library_html {
+            <<template>>
+            +song list
+            +draft list
+            +favorites
+        }
+        class browse_html {
+            <<template>>
+            +public songs
+            +shared song access
+        }
+        class login_html {
+            <<template>>
+            +Google OAuth button
+            +demo login button
+        }
+    }
+
+    namespace Views_V {
+        class GenerationController {
+            <<view>>
+            +generate_song(request) JsonResponse
+            +generation_status(request, task_id) JsonResponse
+        }
+        class SongManagerController {
+            <<view>>
+            +list_songs(request, user_id) JsonResponse
+            +toggle_favorite(request, user_id, song_id) JsonResponse
+            +delete_song(request, user_id, song_id) JsonResponse
+            +list_drafts(request, user_id) JsonResponse
+            +save_draft(request, user_id) JsonResponse
+            +delete_draft(request, user_id, draft_id) JsonResponse
+        }
+        class BrowseController {
+            <<view>>
+            +browse_library(request, user_id) JsonResponse
+            +browse_favorites(request, user_id) JsonResponse
+            +share_song(request, user_id, song_id) JsonResponse
+            +access_shared(request, token) JsonResponse
+        }
+        class AuthController {
+            <<view>>
+            +google_login(request) redirect
+            +google_callback(request) redirect
+            +demo_login(request) redirect
+            +logout(request) redirect
+        }
+        class HomeController {
+            <<view>>
+            +index(request) render
+        }
+    }
+
+    namespace Services {
+        class GenerationService {
+            -generator SongGeneratorStrategy
+            +start_generation(prompt, song) GenerationJob
+            +check_status(task_id) dict
+        }
+        class SongManagerService {
+            +list_songs(user_id) List
+            +toggle_favorite(song_id, user_id) Song
+            +delete_song(song_id, user_id) void
+            +list_drafts(user_id) List
+            +save_draft(user_id, title, mood, occasion) Draft
+            +delete_draft(draft_id, user_id) void
+        }
+    }
+
+    namespace Strategies {
+        class SongGeneratorStrategy {
+            <<abstract>>
+            +generate(request) GenerationResult*
+            +get_status(task_id) GenerationResult*
+        }
+        class MockSongGeneratorStrategy {
+            +generate(request) GenerationResult
+            +get_status(task_id) GenerationResult
+        }
+        class SunoSongGeneratorStrategy {
+            -api_key str
+            -base_url str
+            +generate(request) GenerationResult
+            +get_status(task_id) GenerationResult
+        }
+        class get_generator {
+            <<factory>>
+            +get_generator(strategy) SongGeneratorStrategy
+        }
+        class GenerationRequest {
+            <<dataclass>>
+            +title str
+            +description str
+            +mood str
+            +occasion str
+            +singer_tone str
+            +requested_duration str
+        }
+        class GenerationResult {
+            <<dataclass>>
+            +task_id str
+            +status str
+            +audio_url str
+            +image_url str
+            +title str
+            +duration str
+        }
+    }
+
+    namespace Models_M {
+        class User {
+            +email String
+            +display_name String
+            +google_id String
+            +created_at DateTime
+            +last_login_at DateTime
+        }
+        class Library {
+            +user User
+            +created_at DateTime
+        }
+        class Song {
+            +library Library
+            +title String
+            +audio_file_url String
+            +image_url String
+            +duration String
+            +status GenerationStatus
+            +is_favorite Boolean
+            +play_count Integer
+            +created_at DateTime
+        }
+        class Prompt {
+            +title String
+            +description String
+            +occasion Occasion
+            +mood Mood
+            +singer_tone SingerTone
+            +requested_duration String
+            +created_at DateTime
+        }
+        class Draft {
+            +prompt Prompt
+            +library Library
+            +saved_at DateTime
+            +last_modified_at DateTime
+        }
+        class GenerationJob {
+            +song Song
+            +prompt Prompt
+            +task_id String
+            +status GenerationStatus
+            +created_at DateTime
+            +updated_at DateTime
+        }
+        class ShareLink {
+            +song Song
+            +unique_token String
+            +expires_at DateTime
+            +access_count Integer
+            +created_at DateTime
+        }
+        class PlaybackSession {
+            +user User
+            +current_song Song
+            +current_position String
+            +is_playing Boolean
+            +volume Float
+            +loop_start_time String
+            +loop_end_time String
+            +is_looping Boolean
+        }
+        class EqualizerPreset {
+            +user User
+            +playback_session PlaybackSession
+            +name String
+            +bass_level Float
+            +mid_level Float
+            +treble_level Float
+            +last_used_at DateTime
+        }
+        class GenerationStatus {
+            <<enumeration>>
+            QUEUED
+            GENERATING
+            SUCCESS
+            FAILED
+        }
+        class Mood {
+            <<enumeration>>
+            HAPPY
+            SAD
+            ENERGETIC
+            CALM
+            ROMANTIC
+            INSPIRATIONAL
+        }
+        class Occasion {
+            <<enumeration>>
+            BIRTHDAY
+            WEDDING
+            ANNIVERSARY
+            GRADUATION
+            CELEBRATION
+            CUSTOM
+        }
+        class SingerTone {
+            <<enumeration>>
+            MALE
+            FEMALE
+            NEUTRAL
+            CHILD
+        }
+    }
+
+    home_html ..> GenerationController : calls
+    home_html ..> SongManagerController : calls
+    library_html ..> SongManagerController : calls
+    browse_html ..> BrowseController : calls
+    login_html ..> AuthController : calls
+    HomeController ..> home_html : renders
+    AuthController ..> login_html : renders
+
+    GenerationController --> GenerationService : uses
+    SongManagerController --> SongManagerService : uses
+    BrowseController --> SongManagerService : uses
+
+    GenerationService --> SongGeneratorStrategy : uses
+    GenerationService ..> GenerationRequest : creates
+    GenerationService ..> GenerationResult : receives
+    get_generator ..> SongGeneratorStrategy : returns
+
+    MockSongGeneratorStrategy --|> SongGeneratorStrategy
+    SunoSongGeneratorStrategy --|> SongGeneratorStrategy
+
+    GenerationService --> GenerationJob : creates
+    GenerationService --> Song : updates
+    SongManagerService --> Song : manages
+    SongManagerService --> Draft : manages
+
+    User "1" --> "1" Library : owns
+    User "1" --> "0..1" PlaybackSession : has
+    User "1" --> "0..*" EqualizerPreset : customizes
+    Library "1" *-- "0..*" Song : contains
+    Library "1" *-- "0..*" Draft : stores
+    Draft "1" *-- "1" Prompt : contains
+    Song "1" --> "0..*" ShareLink : shared via
+    GenerationJob "1" --> "1" Song : created by
+    GenerationJob --> GenerationStatus
+    Song --> GenerationStatus
+    Prompt --> Mood
+    Prompt --> Occasion
+    Prompt --> SingerTone
+    PlaybackSession "0..1" --> "1" Song : plays
+    EqualizerPreset "0..*" --> "0..1" PlaybackSession : applies to
+```
+
+---
+
+## Sequence Diagram – Song Generation Use Case
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant T as home.html
+    participant V as GenerationController
+    participant S as GenerationService
+    participant F as get_generator
+    participant M as MockSongGeneratorStrategy
+    participant SN as SunoSongGeneratorStrategy
+    participant API as Suno External API
+    participant DB as Database
+
+    User->>T: Fill form and click Generate
+    T->>V: POST /api/generation/generate/
+
+    V->>DB: get_or_create User
+    V->>DB: get_or_create Library
+    V->>DB: create Prompt
+    V->>DB: create Song (status=QUEUED)
+
+    V->>S: GenerationService(strategy)
+    S->>F: get_generator(strategy)
+
+    alt GENERATOR_STRATEGY = mock
+        F-->>S: MockSongGeneratorStrategy
+    else GENERATOR_STRATEGY = suno
+        F-->>S: SunoSongGeneratorStrategy
+    end
+
+    V->>S: start_generation(prompt, song)
+    S->>S: build GenerationRequest from Prompt
+
+    alt Mock Strategy
+        S->>M: generate(GenerationRequest)
+        M-->>S: GenerationResult(task_id, SUCCESS, audio_url)
+    else Suno Strategy
+        S->>SN: generate(GenerationRequest)
+        SN->>API: POST /api/v1/generate (Bearer token)
+        API-->>SN: {taskId, status: QUEUED}
+        SN-->>S: GenerationResult(task_id, QUEUED)
+    end
+
+    S->>DB: create GenerationJob (task_id, status)
+    S->>DB: update Song (status, audio_url)
+    S-->>V: GenerationJob
+    V-->>T: {task_id, status, audio_url}
+
+    loop Poll every 3s until SUCCESS or FAILED
+        T->>V: GET /api/generation/status/{task_id}
+        V->>S: check_status(task_id)
+
+        alt Mock Strategy
+            S->>M: get_status(task_id)
+            M-->>S: GenerationResult(SUCCESS, audio_url)
+        else Suno Strategy
+            S->>SN: get_status(task_id)
+            SN->>API: GET /api/v1/generate/record-info (Bearer token)
+            API-->>SN: {status, audioUrl, imageUrl}
+            SN-->>S: GenerationResult(status, audio_url)
+        end
+
+        S->>DB: update GenerationJob status
+        S->>DB: update Song status + audio_url
+        S-->>V: {task_id, status, audio_url}
+        V-->>T: {status, audio_url}
+    end
+
+    T->>User: Display generated song with audio player
+```
+
+---
+
 ## Project Structure
 
 ```text

@@ -1,27 +1,6 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Optional
-
-
-@dataclass
-class GenerationRequest:
-    title: str
-    description: str
-    mood: str
-    occasion: str
-    singer_tone: str
-    requested_duration: str = '3:00'
-
-
-@dataclass
-class GenerationResult:
-    task_id: str
-    status: str
-    audio_url: Optional[str] = None
-    image_url: Optional[str] = None
-    title: Optional[str] = None
-    duration: Optional[str] = None
-    raw_data: Optional[dict] = field(default_factory=dict)
+from .generation_request import GenerationRequest
+from .generation_result import GenerationResult
 
 
 class SongGeneratorStrategy(ABC):

@@ -1,6 +1,8 @@
 import requests
 from django.conf import settings
-from .base import SongGeneratorStrategy, GenerationRequest, GenerationResult
+from .base import SongGeneratorStrategy
+from .generation_request import GenerationRequest
+from .generation_result import GenerationResult
 from .exceptions import GenerationAPIError
 
 

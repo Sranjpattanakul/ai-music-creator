@@ -1,29 +1,7 @@
 from django.db import models
-
-
-class Mood(models.TextChoices):
-    HAPPY = 'HAPPY', 'Happy'
-    SAD = 'SAD', 'Sad'
-    ENERGETIC = 'ENERGETIC', 'Energetic'
-    CALM = 'CALM', 'Calm'
-    ROMANTIC = 'ROMANTIC', 'Romantic'
-    INSPIRATIONAL = 'INSPIRATIONAL', 'Inspirational'
-
-
-class Occasion(models.TextChoices):
-    BIRTHDAY = 'BIRTHDAY', 'Birthday'
-    WEDDING = 'WEDDING', 'Wedding'
-    ANNIVERSARY = 'ANNIVERSARY', 'Anniversary'
-    GRADUATION = 'GRADUATION', 'Graduation'
-    CELEBRATION = 'CELEBRATION', 'Celebration'
-    CUSTOM = 'CUSTOM', 'Custom'
-
-
-class SingerTone(models.TextChoices):
-    MALE = 'MALE', 'Male'
-    FEMALE = 'FEMALE', 'Female'
-    NEUTRAL = 'NEUTRAL', 'Neutral'
-    CHILD = 'CHILD', 'Child'
+from .mood import Mood
+from .occasion import Occasion
+from .singer_tone import SingerTone
 
 
 class Prompt(models.Model):

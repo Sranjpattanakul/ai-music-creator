@@ -1,5 +1,5 @@
 from app.strategies.factory import get_generator
-from app.strategies.base import GenerationRequest
+from app.strategies.generation_request import GenerationRequest
 from app.models import GenerationJob, Song, Prompt
 
 

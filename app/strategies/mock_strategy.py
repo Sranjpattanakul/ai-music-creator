@@ -1,0 +1,44 @@
+import uuid
+from .base import SongGeneratorStrategy, GenerationRequest, GenerationResult
+
+
+class MockSongGeneratorStrategy(SongGeneratorStrategy):
+    """Offline, deterministic strategy for development and testing.
+    Never calls any external API."""
+
+    PLACEHOLDER_AUDIO_URL = (
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+    )
+    PLACEHOLDER_IMAGE_URL = (
+        'https://picsum.photos/seed/mock-song/400/400'
+    )
+
+    def generate(self, request: GenerationRequest) -> GenerationResult:
+        task_id = f"mock-{uuid.uuid4().hex[:8]}"
+        print(f"[Mock] generate → taskId={task_id} status=SUCCESS title='{request.title}'")
+        return GenerationResult(
+            task_id=task_id,
+            status='SUCCESS',
+            audio_url=self.PLACEHOLDER_AUDIO_URL,
+            image_url=self.PLACEHOLDER_IMAGE_URL,
+            title=request.title,
+            duration='3:30',
+            raw_data={
+                'mock': True,
+                'prompt': request.description,
+                'mood': request.mood,
+                'occasion': request.occasion,
+                'singer_tone': request.singer_tone,
+            },
+        )
+
+    def get_status(self, task_id: str) -> GenerationResult:
+        return GenerationResult(
+            task_id=task_id,
+            status='SUCCESS',
+            audio_url=self.PLACEHOLDER_AUDIO_URL,
+            image_url=self.PLACEHOLDER_IMAGE_URL,
+            title='Mock Generated Song',
+            duration='3:30',
+            raw_data={'mock': True},
+        )

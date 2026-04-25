@@ -1,15 +1,37 @@
+# Environment — never commit secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Django
+db.sqlite3
+*.sqlite3
+/static/
+/media/
+/staticfiles/
+
+# Virtual environments
 venv/
+.venv/
 env/
-.idea/
+ENV/
+
+# IDE
 .vscode/
-.pycharm/
-__pycache__/
-*.pyc
-.pytest_cache/
-db.sqlite3__pycache__/
-venv/
-venv/
-__pycache__/
-.pytest_cache/
 .idea/
-.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
